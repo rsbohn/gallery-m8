@@ -144,7 +144,6 @@
 
   <script>
     const fileList = document.getElementById('file-list');
-    const previewTitle = document.getElementById('preview-title');
     const previewContent = document.getElementById('preview-content');
 
     // File list will be injected here by GitHub Actions
@@ -196,10 +195,8 @@
         
         const json = await response.json();
         
-        previewTitle.textContent = fileName;
         previewContent.innerHTML = `<pre>${JSON.stringify(json, null, 2)}</pre>`;
       } catch (error) {
-        previewTitle.textContent = 'Error';
         previewContent.innerHTML = `<div class="empty-state">Failed to load ${fileName}: ${error.message}</div>`;
       }
     }
