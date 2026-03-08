@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gallery M8</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: system-ui, sans-serif; 
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .sidebar {
+      width: 300px;
+      border-right: 1px solid #ccc;
+      padding: 1.5rem;
+      overflow-y: auto;
+      background: #f8f9fa;
+    }
+    .preview {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      background: #fff;
+    }
+    h1 { 
+      margin: 0 0 1rem 0;
+      font-size: 1.5rem;
+    }
+    h2 {
+      margin: 0 0 1rem 0;
+      font-size: 1.25rem;
+      color: #666;
+    }
+    ul { 
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    .file-link {
+      display: block;
+      padding: 0.75rem;
+      text-decoration: none;
+      color: #0066cc;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .file-link:hover {
+      background: #e9ecef;
+    }
+    .file-link.active {
+      background: #007bff;
+      color: white;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .empty-state {
+      color: #999;
+      text-align: center;
+      padding: 3rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <h1>Gallery M8</h1>
+      <pre>by Dexter Starboard</pre>
+      <p style="margin-bottom: 1rem; color: #666;">JSON Snapshots:</p>
+      <ul id="file-list">
+        <li class="empty-state" style="padding: 1rem;">Loading files...</li>
+      </ul>
+    </div>
+    <div class="preview">
+      <h2 id="preview-title">Preview</h2>
+      <div id="preview-content" class="empty-state">Select a file to preview</div>
+    </div>
+  </div>
+
+  <script>
+    const fileList = document.getElementById('file-list');
+    const previewTitle = document.getElementById('preview-title');
+    const previewContent = document.getElementById('preview-content');
+
+    // Load and display file list dynamically
+    async function loadFileList() {
+      try {
+        const response = await fetch('media/files.json');
+        if (!response.ok) throw new Error('Failed to load file list');
+        
+        const data = await response.json();
+        
+        fileList.innerHTML = '';
+        
+        data.files.forEach(fileName => {
+          const li = document.createElement('li');
+          const link = document.createElement('a');
+          link.href = '#';
+          link.className = 'file-link';
+          link.dataset.file = `media/${fileName}`;
+          link.textContent = fileName;
+          
+          link.addEventListener('click', (e) => handleFileClick(e, link));
+          
+          li.appendChild(link);
+          fileList.appendChild(li);
+        });
+      } catch (error) {
+        fileList.innerHTML = '<li class="empty-state" style="padding: 1rem;">Failed to load file list</li>';
+        console.error('Error loading file list:', error);
+      }
+    }
+
+    async function handleFileClick(e, link) {
+      e.preventDefault();
+      
+      // Update active state
+      document.querySelectorAll('.file-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      
+      const filePath = link.dataset.file;
+      const fileName = filePath.split('/').pop();
+      
+      try {
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error('Failed to load file');
+        
+        const json = await response.json();
+        
+        previewTitle.textContent = fileName;
+        previewContent.innerHTML = `<pre>${JSON.stringify(json, null, 2)}</pre>`;
+      } catch (error) {
+        previewTitle.textContent = 'Error';
+        previewContent.innerHTML = `<div class="empty-state">Failed to load ${fileName}: ${error.message}</div>`;
+      }
+    }
+
+    // Initialize on page load
+    loadFileList();
+  </script>
+</body>
+</html>
